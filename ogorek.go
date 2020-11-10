@@ -96,6 +96,12 @@ const (
 	opStackGlobal     byte = '\x93' // same as OpGlobal but using names on the stacks
 	opMemoize         byte = '\x94' // store top of the stack in memo
 	opFrame           byte = '\x95' // indicate the beginning of a new frame
+
+	// Protocol 5
+
+	opLoadByteArray8     byte = '\x96' // push bytearray
+	opLoadNextBuffer     byte = '\x97' // push next out-of-band buffer
+	opLoadReadOnlyBuffer byte = '\x98' // make top of stack read-only
 )
 
 var errNotImplemented = errors.New("unimplemented opcode")
@@ -301,11 +307,17 @@ loop:
 			err = d.stackGlobal()
 		case opMemoize:
 			err = d.loadMemoize()
+		case opLoadByteArray8:
+			err = d.loadByteArray8()
+		case opLoadNextBuffer:
+			err = d.loadNextBuffer()
+		case opLoadReadOnlyBuffer:
+			err = d.loadNextReadOnlyBuffer()
 		case opProto:
 			var v byte
 			v, err = d.r.ReadByte()
-			if err == nil && !(0 <= v && v <= 4) {
-				// We support protocol opcodes for up to protocol 4.
+			if err == nil && !(0 <= v && v <= 5) {
+				// We support protocol opcodes for up to protocol 5.
 				//
 				// The PROTO opcode documentation says protocol version must be in [2, 256).
 				// However CPython also loads PROTO with version 0 and 1 without error.
@@ -1232,6 +1244,18 @@ func (d *Decoder) stackGlobal() error {
 
 func (d *Decoder) loadMemoize() error {
 	return d.memoTop(strconv.Itoa(len(d.memo)))
+}
+
+func (d *Decoder) loadByteArray8() error {
+	return errNotImplemented
+}
+
+func (d *Decoder) loadNextBuffer() error {
+	return errNotImplemented
+}
+
+func (d *Decoder) loadNextReadOnlyBuffer() error {
+	return errNotImplemented
 }
 
 // unquoteChar is like strconv.UnquoteChar, but returns io.ErrUnexpectedEOF
